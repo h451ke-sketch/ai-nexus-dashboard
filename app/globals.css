@@ -303,6 +303,7 @@ button {
    margin-bottom: 1.5rem;
    background: linear-gradient(to right, #6366f1, #f43f5e);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
    font-weight: 800;
 }

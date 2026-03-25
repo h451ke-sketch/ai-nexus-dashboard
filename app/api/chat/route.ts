@@ -22,6 +22,10 @@ export async function POST(req: Request) {
         model: 'cogview-3',
         prompt: lastMessage,
       });
+
+      if (!response.data || !response.data[0]?.url) {
+        throw new Error('Image generation failed: No URL returned');
+      }
       return NextResponse.json({ message: response.data[0].url });
     }
 
