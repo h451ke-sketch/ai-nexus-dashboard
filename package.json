@@ -6,8 +6,7 @@
     "archives": "node scripts/build-archives.mjs",
     "predev": "node scripts/build-archives.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/build-archives.mjs",
-    "build": "next build",
+    "build": "node scripts/build-archives.mjs && next build",
     "start": "next start",
     "lint": "eslint"
   },
