@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# generated skill archives (rebuilt from /skills/* on every dev/build)
+/public/archives/
+
 # production
 /build
 
@@ -35,6 +38,9 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# Cascade / Windsurf agent workspace
+.agents/
 
 # typescript
 *.tsbuildinfo

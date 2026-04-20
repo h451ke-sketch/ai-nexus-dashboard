@@ -1,151 +1,123 @@
-'use client';
-
-import React from 'react';
 import Link from 'next/link';
-import { Sparkles, Bot, Zap, Shield, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { getAllSkills, formatBytes, formatRelative } from '@/lib/skills';
+import { T } from '@/components/T';
 
-export default function LandingPage() {
+export const dynamic = 'force-static';
+
+export default async function HomePage() {
+  const skills = await getAllSkills();
+
   return (
-    <div className="landing-container">
-      <style jsx>{`
-        .landing-container {
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 2rem;
-          text-align: center;
-          background: radial-gradient(circle at center, #1e1b4b 0%, #050505 100%);
-        }
-        .header {
-           max-width: 800px;
-        }
-        .badge {
-           display: inline-flex;
-           align-items: center;
-           gap: 0.5rem;
-           padding: 0.5rem 1rem;
-           background: rgba(99, 102, 241, 0.1);
-           border: 1px solid rgba(99, 102, 241, 0.2);
-           border-radius: 2rem;
-           color: #6366f1;
-           font-size: 0.875rem;
-           font-weight: 600;
-           margin-bottom: 2rem;
-        }
-        .title {
-          font-size: 4rem;
-          font-weight: 900;
-          letter-spacing: -0.05em;
-          line-height: 1.1;
-          margin-bottom: 1.5rem;
-          background: linear-gradient(to bottom right, #fff 30%, rgba(255,255,255,0.4));
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-        .subtitle {
-          font-size: 1.25rem;
-          color: rgba(255, 255, 255, 0.6);
-          margin-bottom: 3rem;
-          max-width: 600px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-        .actions {
-          display: flex;
-          gap: 1rem;
-          justify-content: center;
-        }
-        .features {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 2rem;
-          max-width: 1000px;
-          margin-top: 6rem;
-          width: 100%;
-        }
-        .feature-card {
-           padding: 2rem;
-           border-radius: 1.5rem;
-           text-align: left;
-           transition: transform 0.3s ease;
-        }
-        .feature-card:hover {
-           transform: translateY(-5px);
-        }
-        .icon-box {
-           width: 48px;
-           height: 48px;
-           border-radius: 12px;
-           background: rgba(255, 255, 255, 0.05);
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           margin-bottom: 1.5rem;
-           color: #6366f1;
-        }
-        @media (max-width: 640px) {
-          .title { font-size: 2.5rem; }
-          .actions { flex-direction: column; width: 100%; }
-        }
-      `}</style>
-
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="header"
-      >
-        <div className="badge">
-          <Sparkles size={14} />
-          <span>New: AI Nexus v1.0</span>
-        </div>
-        <h1 className="title">
-          Elevate your productivity <br /> with AI Nexus.
+    <div className="container">
+      <section className="hero">
+        <h1>
+          <T en="The skills directory." zh="Skill 目录" />
         </h1>
-        <p className="subtitle">
-          The ultimate AI assistant portal. Seamless authentication, beautiful design, and powerful intelligence at your fingertips.
+        <p>
+          <T
+            en={
+              <>
+                Reusable procedural knowledge for our AI agents — runbooks,
+                review checklists, deployment recipes. Each skill is a folder
+                of markdown that any compatible agent (Claude Code, Codex,
+                Cursor, OpenCode, …) can load on demand. Click any skill below
+                for the one-line install command, or read the{' '}
+                <Link href="/docs">publishing guide</Link>.
+              </>
+            }
+            zh={
+              <>
+                为我们的 AI agent 准备的可复用流程知识 —— 应急手册、评审清单、
+                部署套路。每个 skill 是一个 markdown 文件夹，任何兼容的 agent
+                （Claude Code、Codex、Cursor、OpenCode……）都能按需加载。点开
+                下面任意一个 skill 拿到一行的安装命令，或者去看
+                <Link href="/docs">发布指南</Link>。
+              </>
+            }
+          />
         </p>
+      </section>
 
-        <div className="actions">
-          <Link href="/auth/signup" className="btn-primary">
-            Get Started <ArrowRight size={18} />
-          </Link>
-          <Link href="/auth/login" className="glass" style={{ padding: '0.75rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600 }}>
-            Sign In
-          </Link>
+      <section>
+        <div className="section-head">
+          <h2>
+            <T en="Skills directory" zh="Skill 目录" />
+          </h2>
+          <span className="meta">
+            <T
+              en={`${skills.length} skill${skills.length === 1 ? '' : 's'}`}
+              zh={`共 ${skills.length} 个 skill`}
+            />
+          </span>
         </div>
-      </motion.div>
 
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="features"
-      >
-        <div className="feature-card glass">
-           <div className="icon-box"><Bot size={24} /></div>
-           <h3 style={{ marginBottom: '1rem' }}>Smart Intelligence</h3>
-           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.875rem' }}>
-             Powered by OpenAI&apos;s latest models for accurate and insightful responses.
-           </p>
-        </div>
-        <div className="feature-card glass">
-           <div className="icon-box"><Shield size={24} /></div>
-           <h3 style={{ marginBottom: '1rem' }}>Secure Auth</h3>
-           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.875rem' }}>
-             Built-in Supabase authentication for robust security and user management.
-           </p>
-        </div>
-        <div className="feature-card glass">
-           <div className="icon-box"><Zap size={24} /></div>
-           <h3 style={{ marginBottom: '1rem' }}>Ultra Fast</h3>
-           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.875rem' }}>
-             Optimized for speed with Next.js App Router and real-time integration.
-           </p>
-        </div>
-      </motion.div>
+        {skills.length === 0 ? (
+          <div className="empty">
+            <h3>
+              <T en="No skills published yet" zh="还没有 skill 发布" />
+            </h3>
+            <p>
+              <T
+                en={
+                  <>
+                    Drop a folder into <code>/skills</code> with a{' '}
+                    <code>SKILL.md</code> inside, then commit and push.{' '}
+                    <Link href="/docs">See the publishing guide →</Link>
+                  </>
+                }
+                zh={
+                  <>
+                    在 <code>/skills</code> 下放一个含 <code>SKILL.md</code>{' '}
+                    的文件夹，提交并推送即可。{' '}
+                    <Link href="/docs">查看发布指南 →</Link>
+                  </>
+                }
+              />
+            </p>
+          </div>
+        ) : (
+          <ol className="skill-list">
+            {skills.map((s, i) => (
+              <li key={s.slug}>
+                <Link href={`/${s.slug}`} className="skill-row">
+                  <span className="skill-rank">{i + 1}</span>
+                  <div className="skill-main">
+                    <h3>
+                      {s.name}
+                      <span className="slug">/{s.slug}</span>
+                    </h3>
+                    <p>
+                      {s.description || (
+                        <T en="No description." zh="暂无描述。" />
+                      )}
+                    </p>
+                    {s.tags.length > 0 ? (
+                      <div className="tag-row">
+                        {s.tags.slice(0, 5).map((t) => (
+                          <span key={t} className="tag">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="skill-side">
+                    {s.version ? <span className="ver">v{s.version}</span> : null}
+                    <span>{formatBytes(s.size)}</span>
+                    <span>
+                      <T
+                        en={`updated ${formatRelative(s.updatedAt)}`}
+                        zh={`更新于 ${formatRelative(s.updatedAt)}`}
+                      />
+                    </span>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
     </div>
   );
 }
+
