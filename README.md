@@ -118,6 +118,48 @@ pnpm archives
 - Delete the folder, commit, push.
 - The pre-build script also drops the stale `.zip` from `public/archives/`.
 
+## CLI (`npx skills …`)
+
+A small companion CLI ships in `bin/cli.mjs`. It uses only Node built-ins
+plus the system `tar`/`unzip`, so `npx` doesn't need to install heavy
+dependencies for it to run.
+
+```bash
+# Browse what's published
+npx -p github:<owner>/<repo> skills list
+
+# Install a skill into your Claude Code skills directory
+npx -p github:<owner>/<repo> skills add internal-deploy --dest ~/.claude/skills
+
+# Scaffold a new skill folder locally with a starter SKILL.md
+npx -p github:<owner>/<repo> skills new my-helpful-skill
+```
+
+After cloning the repo you can shorten that to:
+
+```bash
+pnpm cli list
+pnpm cli add internal-deploy
+pnpm cli new my-helpful-skill
+```
+
+Or, after `pnpm install`:
+
+```bash
+pnpm exec skills list
+```
+
+The CLI reads the site URL from (in order): `--site <url>` flag,
+`SKILLS_SITE_URL` env var, then the default baked into `bin/cli.mjs`. Adjust
+the default in `cli.mjs` to your own deployment.
+
+### Publishing a skill via the CLI
+
+There is no dedicated `publish` subcommand because the underlying mechanism
+is just `git push`. Use `npx skills new <name>` from the repo root to scaffold
+a folder under `skills/`, edit `SKILL.md`, then commit and push — the next
+deploy picks it up.
+
 ## Installing a skill (consumer side)
 
 Each skill page on the site exposes a `Download` button that gives you a

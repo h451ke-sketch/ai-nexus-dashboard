@@ -2,13 +2,19 @@ import 'server-only';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import matter from 'gray-matter';
-import { marked } from 'marked';
+import { Marked, type Token, type Tokens } from 'marked';
 
 export const SKILLS_DIR = path.join(process.cwd(), 'skills');
 
 export type SkillFile = {
   path: string;
   size: number;
+};
+
+export type SkillHeading = {
+  id: string;
+  text: string;
+  level: 2 | 3;
 };
 
 export type Skill = {
@@ -20,6 +26,7 @@ export type Skill = {
   tags: string[];
   body: string;
   bodyHtml: string;
+  headings: SkillHeading[];
   files: SkillFile[];
   fileCount: number;
   size: number;
@@ -27,6 +34,52 @@ export type Skill = {
   archiveUrl: string;
   archiveSize: number | null;
 };
+
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9\u4e00-\u9fff]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function makeMarked(): Marked {
+  // Per-instance Marked so we can register a custom heading renderer that
+  // injects anchor ids without leaking globally between calls.
+  const md = new Marked();
+  md.use({
+    renderer: {
+      heading(this: { parser: { parseInline: (t: Token[]) => string } }, token: Tokens.Heading) {
+        const text = this.parser.parseInline(token.tokens);
+        const plain = text.replace(/<[^>]*>/g, '');
+        const id = slugify(plain);
+        return `<h${token.depth} id="${id}">${text}</h${token.depth}>\n`;
+      },
+    },
+  });
+  return md;
+}
+
+const md = makeMarked();
+
+function extractHeadings(markdown: string): SkillHeading[] {
+  const lines = markdown.split(/\r?\n/);
+  const headings: SkillHeading[] = [];
+  let inFence = false;
+  for (const line of lines) {
+    if (/^\s*```/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+    const m = /^(##|###)\s+(.+?)\s*#*\s*$/.exec(line);
+    if (m) {
+      const level = m[1].length === 2 ? 2 : 3;
+      const text = m[2].trim();
+      headings.push({ id: slugify(text), text, level: level as 2 | 3 });
+    }
+  }
+  return headings;
+}
 
 type WalkedFile = { rel: string; size: number; mtime: Date };
 
@@ -101,7 +154,8 @@ async function loadSkill(slug: string): Promise<Skill | null> {
     ? (data.tags as unknown[]).filter((t): t is string => typeof t === 'string')
     : [];
 
-  const bodyHtml = marked.parse(parsed.content, { async: false }) as string;
+  const bodyHtml = md.parse(parsed.content, { async: false }) as string;
+  const headings = extractHeadings(parsed.content);
 
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
   const archiveUrl = `${basePath}/archives/${slug}.zip`;
@@ -118,6 +172,7 @@ async function loadSkill(slug: string): Promise<Skill | null> {
     tags,
     body: parsed.content,
     bodyHtml,
+    headings,
     files: files
       .map((f) => ({ path: f.rel, size: f.size }))
       .sort((a, b) => a.path.localeCompare(b.path)),

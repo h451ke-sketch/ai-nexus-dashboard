@@ -2,13 +2,21 @@
   "name": "skills",
   "version": "0.1.0",
   "private": true,
+  "bin": {
+    "skills": "./bin/cli.mjs"
+  },
+  "files": [
+    "bin",
+    "README.md"
+  ],
   "scripts": {
-    "archives": "node scripts/build-archives.mjs",
-    "predev": "node scripts/build-archives.mjs",
+    "archives": "node scripts/build-archives.mjs && node scripts/build-index.mjs",
+    "predev": "node scripts/build-archives.mjs && node scripts/build-index.mjs",
     "dev": "next dev",
-    "build": "node scripts/build-archives.mjs && next build",
+    "build": "node scripts/build-archives.mjs && node scripts/build-index.mjs && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "cli": "node bin/cli.mjs"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",

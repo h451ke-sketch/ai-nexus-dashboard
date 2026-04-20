@@ -1,36 +1,53 @@
 import Link from 'next/link';
-import { getAllSkills, formatBytes, formatRelative } from '@/lib/skills';
+import { getAllSkills, formatBytes } from '@/lib/skills';
 import { T } from '@/components/T';
+import { SkillBrowser } from '@/components/SkillBrowser';
 
 export const dynamic = 'force-static';
 
 export default async function HomePage() {
   const skills = await getAllSkills();
 
+  const totalFiles = skills.reduce((s, k) => s + k.fileCount, 0);
+  const totalSize = skills.reduce((s, k) => s + k.size, 0);
+  const allTags = new Set<string>();
+  for (const s of skills) for (const t of s.tags) allTags.add(t);
+
+  // Pass only what the client component needs (no rendered HTML / file lists).
+  const compact = skills.map((s) => ({
+    slug: s.slug,
+    name: s.name,
+    description: s.description,
+    version: s.version,
+    tags: s.tags,
+    size: s.size,
+    updatedAt: s.updatedAt,
+  }));
+
   return (
     <div className="container">
       <section className="hero">
         <h1>
-          <T en="The skills directory." zh="Skill 目录" />
+          <T
+            en="A directory of agent skills."
+            zh="AI Agent 技能目录"
+          />
         </h1>
         <p>
           <T
             en={
               <>
-                Reusable procedural knowledge for our AI agents — runbooks,
-                review checklists, deployment recipes. Each skill is a folder
-                of markdown that any compatible agent (Claude Code, Codex,
-                Cursor, OpenCode, …) can load on demand. Click any skill below
-                for the one-line install command, or read the{' '}
+                Reusable procedural knowledge — runbooks, review checklists,
+                deploy recipes — for any agent that speaks the SKILL.md
+                format. Click a skill for a one-line install, or read the{' '}
                 <Link href="/docs">publishing guide</Link>.
               </>
             }
             zh={
               <>
-                为我们的 AI agent 准备的可复用流程知识 —— 应急手册、评审清单、
-                部署套路。每个 skill 是一个 markdown 文件夹，任何兼容的 agent
-                （Claude Code、Codex、Cursor、OpenCode……）都能按需加载。点开
-                下面任意一个 skill 拿到一行的安装命令，或者去看
+                可复用的流程知识：应急手册、评审清单、部署套路。任何兼容
+                SKILL.md 格式的 agent 都能直接使用。点开任意 skill 拿到
+                一行的安装命令，或者去看
                 <Link href="/docs">发布指南</Link>。
               </>
             }
@@ -38,86 +55,66 @@ export default async function HomePage() {
         </p>
       </section>
 
-      <section>
-        <div className="section-head">
-          <h2>
-            <T en="Skills directory" zh="Skill 目录" />
-          </h2>
-          <span className="meta">
-            <T
-              en={`${skills.length} skill${skills.length === 1 ? '' : 's'}`}
-              zh={`共 ${skills.length} 个 skill`}
-            />
-          </span>
-        </div>
-
-        {skills.length === 0 ? (
-          <div className="empty">
-            <h3>
-              <T en="No skills published yet" zh="还没有 skill 发布" />
-            </h3>
-            <p>
-              <T
-                en={
-                  <>
-                    Drop a folder into <code>/skills</code> with a{' '}
-                    <code>SKILL.md</code> inside, then commit and push.{' '}
-                    <Link href="/docs">See the publishing guide →</Link>
-                  </>
-                }
-                zh={
-                  <>
-                    在 <code>/skills</code> 下放一个含 <code>SKILL.md</code>{' '}
-                    的文件夹，提交并推送即可。{' '}
-                    <Link href="/docs">查看发布指南 →</Link>
-                  </>
-                }
-              />
-            </p>
+      {skills.length > 0 ? (
+        <section
+          className="stats"
+          aria-label="Directory statistics"
+          role="group"
+        >
+          <div className="stat">
+            <span className="stat-value">{skills.length}</span>
+            <span className="stat-label">
+              <T en="skills" zh="技能" />
+            </span>
           </div>
-        ) : (
-          <ol className="skill-list">
-            {skills.map((s, i) => (
-              <li key={s.slug}>
-                <Link href={`/${s.slug}`} className="skill-row">
-                  <span className="skill-rank">{i + 1}</span>
-                  <div className="skill-main">
-                    <h3>
-                      {s.name}
-                      <span className="slug">/{s.slug}</span>
-                    </h3>
-                    <p>
-                      {s.description || (
-                        <T en="No description." zh="暂无描述。" />
-                      )}
-                    </p>
-                    {s.tags.length > 0 ? (
-                      <div className="tag-row">
-                        {s.tags.slice(0, 5).map((t) => (
-                          <span key={t} className="tag">
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                  <div className="skill-side">
-                    {s.version ? <span className="ver">v{s.version}</span> : null}
-                    <span>{formatBytes(s.size)}</span>
-                    <span>
-                      <T
-                        en={`updated ${formatRelative(s.updatedAt)}`}
-                        zh={`更新于 ${formatRelative(s.updatedAt)}`}
-                      />
-                    </span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ol>
-        )}
-      </section>
+          <div className="stat">
+            <span className="stat-value">{totalFiles}</span>
+            <span className="stat-label">
+              <T en="files" zh="文件" />
+            </span>
+          </div>
+          <div className="stat">
+            <span className="stat-value">{allTags.size}</span>
+            <span className="stat-label">
+              <T en="tags" zh="标签" />
+            </span>
+          </div>
+          <div className="stat">
+            <span className="stat-value">{formatBytes(totalSize)}</span>
+            <span className="stat-label">
+              <T en="total size" zh="总大小" />
+            </span>
+          </div>
+        </section>
+      ) : null}
+
+      {skills.length === 0 ? (
+        <div className="empty">
+          <h3>
+            <T en="No skills published yet" zh="还没有 skill 发布" />
+          </h3>
+          <p>
+            <T
+              en={
+                <>
+                  Drop a folder into <code>/skills</code> with a{' '}
+                  <code>SKILL.md</code> inside, then commit and push.{' '}
+                  <Link href="/docs">See the publishing guide →</Link>
+                </>
+              }
+              zh={
+                <>
+                  在 <code>/skills</code> 下放一个含 <code>SKILL.md</code>{' '}
+                  的文件夹，提交并推送即可。{' '}
+                  <Link href="/docs">查看发布指南 →</Link>
+                </>
+              }
+            />
+          </p>
+        </div>
+      ) : (
+        <SkillBrowser skills={compact} />
+      )}
     </div>
   );
 }
-

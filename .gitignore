@@ -17,8 +17,9 @@
 /.next/
 /out/
 
-# generated skill archives (rebuilt from /skills/* on every dev/build)
+# generated assets (rebuilt from /skills/* on every dev/build)
 /public/archives/
+/public/skills.json
 
 # production
 /build
